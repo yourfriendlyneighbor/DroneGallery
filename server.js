@@ -12,7 +12,7 @@ app.set('view engine', 'ejs');
 
 app.use(compression());
 
-mongoose.connect('mongodb://user:pass@ds149412.mlab.com:49412/dronepics');
+mongoose.connect('mongodb://dabkab:abcdabcd@ds149412.mlab.com:49412/dronepics');
 
 const Photo = mongoose.model('Photo', {
     title: {
