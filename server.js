@@ -6,7 +6,16 @@ multer = require('multer'),
 upload = multer({dest: 'uploads/'}),
 bodyParser = require('body-parser'),
 fs = require('fs'),
-compression = require('compression');
+compression = require('compression'),
+cloudinary = require('cloudinary'),
+path = require('path'),
+mongoosePaginate = require('mongoose-paginate');
+cloudinary.config({
+  cloud_name: 'dgeyqjlzg',
+  api_key: '328426136744652',
+  api_secret: 'ToWguKhGOvj9ZKDl8onjg7f5Xag'
+});
+
 
 app.set('view engine', 'ejs');
 
@@ -14,7 +23,7 @@ app.use(compression());
 
 mongoose.connect('mongodb://dabkab:abcdabcd@ds149412.mlab.com:49412/dronepics');
 
-const Photo = mongoose.model('Photo', {
+var pschema = new mongoose.Schema({
     title: {
         type: String
     },
@@ -27,8 +36,21 @@ const Photo = mongoose.model('Photo', {
     date: {
         type: Date,
         default: Date.now
+    },
+    likes: {
+        type: Number
+    },
+    dislikes: {
+        type: Number
     }
-}, 'gallery')
+}, {
+    collection: 'gallery'
+});
+
+pschema.plugin(mongoosePaginate);
+
+const Photo = mongoose.model('Photo', pschema);
+
 
 app.use('/static', express.static('./static'));
 app.use('/userUploads', express.static('./userUploads'));
@@ -38,6 +60,8 @@ app.use('/materializeCSS', express.static('./node_modules/materialize-css/dist/c
 app.use('/materializeJS', express.static('./node_modules/materialize-css/dist/js/materialize.min.js'));
 app.use('/fonts/roboto/Roboto-Regular.woff', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Regular.woff'));
 app.use('/fonts/roboto/Roboto-Regular.woff2', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Regular.woff2'));
+app.use('/fonts/roboto/Roboto-Medium.woff', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Medium.woff'));
+app.use('/fonts/roboto/Roboto-Medium.woff2', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Medium.woff2'));
 
 
 app.use(bodyParser.json());
@@ -56,19 +80,23 @@ app.get('/', (req, res) => {
     res.redirect('/home');
 });
 app.get('/home', (req, res) => {
-    Photo.find({}, (err, data) => {
-        res.render('pages/index', {
-            photos: data.reverse()
-        })
-    })
+    var currentPage = 1, limit = 6, docs = [];
+
+    currentPage = +req.query.page;
+    Photo.paginate({}, { page: currentPage, limit: limit }, function(err, result) {
+        docs = result.docs.reverse();
+
+        res.render("pages/index", { photos: docs });
+    });
+
+
+
 });
 app.get('/upload', (req, res) => {
     res.render('pages/upload')
 });
 
 
-var path = require('path');
-// require the image editing file
 var editor = path.resolve(__dirname, 'editor.js');
 function compressAndResize (imageUrl) {
   // We need to spawn a child process so that we do not block
@@ -95,24 +123,30 @@ app.post('/postPhoto', upload.any(), (req, res) => {
 
     if(req.files){
         req.files.forEach((file) => {
-            var filename = (new Date).valueOf()+"."+file.originalname
+            var filename = (new Date).valueOf() + "." + file.originalname;
             fs.rename(file.path, './userUploads/' + filename, (err) => {
                 if(err)throw err;
 
-                compressAndResize('./userUploads/' + filename);
+                cloudinary.uploader.upload('./userUploads/' + filename, function(result) {
+                  console.log(result)
+                  var photo = new Photo({
+                      title: req.body.title,
+                      description: req.body.description,
+                      image: result.url
+                  });
 
-                var photo = new Photo({
-                    title: req.body.title,
-                    description: req.body.description,
-                    image: filename
-                });
-
-                photo.save((err, result) => {
-                    if(err){throw err}else{
-                        res.json({success: 'Success! Check out your new image'})
-                    }
-                })
-
+                  photo.save((err, result) => {
+                      if(err){throw err}else{
+                          fs.unlink('./userUploads/'+filename, (err) => {
+                              if (err) throw err;
+                              res.json({success: 'Success! Check out your new image'})
+                            });
+                      }
+                  })
+              }, {
+                  width: 1080,
+                  height: 720
+              });
             })
         })
     }

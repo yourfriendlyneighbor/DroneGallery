@@ -1,17 +1,9 @@
 var gulp = require('gulp');
 var imagemin = require('gulp-imagemin');
-var gm = require('gulp-gm');
-
 
 function processImg(filesrc) {
     console.log(filesrc);
  return gulp.src(filesrc)
-
-  .pipe(gm(function (gmfile) {
-
-      return gmfile.resize(1080, 720);
-
-    }))
 
   .pipe(imagemin({optimizationLevel: 5}))
 
