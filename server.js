@@ -28,7 +28,7 @@ const Photo = mongoose.model('Photo', {
         type: Date,
         default: Date.now
     }
-})
+}, 'gallery')
 
 app.use('/static', express.static('./static'));
 app.use('/userUploads', express.static('./userUploads'));
