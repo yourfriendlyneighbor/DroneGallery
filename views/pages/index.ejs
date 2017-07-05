@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html ng-app="DroneGallery">
+    <head>
+        <%- include ../partials/head.ejs %>
+        <title>Home</title>
+    </head>
+    <body ng-controller="MainController">
+        <%- include ../partials/nav.ejs %>
+
+        <div class="container">
+            <h1>Drone Photos</h1>
+
+            <div class="row">
+                <% for(var i=0; i<photos.length; i++) {%>
+                    <div class="col s4">
+                        <h5><%= photos[i].title %></h5>
+                        <br />
+                        <p><%= photos[i].description %></p>
+                        <img src="/userUploads/<%=photos[i].image %>" alt="<%= photos[i].title %>" width="100%" height="100%" class="materialboxed" >
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+
+        <%- include ../partials/footer.ejs %>
+
+        <%- include ../partials/scripts.ejs %>
+    </body>
+</html>
