@@ -136,8 +136,8 @@ app.post('/postPhoto', upload.any(), (req, res) => {
                                             }
                                         })
                                     }, {
-                                        width: 1080,
-                                        height: 720
+                                        width: 512,
+                                        height: 360
                                     });
                                 }
 
