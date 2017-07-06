@@ -48,16 +48,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
 /*  Static Routes */
-app.use('/static', express.static('./static'));
-app.use('/userUploads', express.static('./userUploads'));
-app.use('/jquery', express.static('./node_modules/jquery/dist/jquery.min.js'));
-app.use('/angular', express.static('./node_modules/angular/angular.min.js'));
-app.use('/materializeCSS', express.static('./node_modules/materialize-css/dist/css/materialize.min.css'));
-app.use('/materializeJS', express.static('./node_modules/materialize-css/dist/js/materialize.min.js'));
-app.use('/fonts/roboto/Roboto-Regular.woff', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Regular.woff'));
-app.use('/fonts/roboto/Roboto-Regular.woff2', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Regular.woff2'));
-app.use('/fonts/roboto/Roboto-Medium.woff', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Medium.woff'));
-app.use('/fonts/roboto/Roboto-Medium.woff2', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Medium.woff2'));
+app.use('/static', express.static('./static', { maxage: '7d' }));
+app.use('/userUploads', express.static('./userUploads', { maxage: '7d' }));
+app.use('/jquery', express.static('./node_modules/jquery/dist/jquery.min.js', { maxage: '90d' }));
+app.use('/angular', express.static('./node_modules/angular/angular.min.js', { maxage: '90d' }));
+app.use('/materializeCSS', express.static('./node_modules/materialize-css/dist/css/materialize.min.css', { maxage: '90d' }));
+app.use('/materializeJS', express.static('./node_modules/materialize-css/dist/js/materialize.min.js', { maxage: '90d' }));
+app.use('/fonts/roboto/Roboto-Regular.woff', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Regular.woff', { maxage: '365d' }));
+app.use('/fonts/roboto/Roboto-Regular.woff2', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Regular.woff2', { maxage: '365d' }));
+app.use('/fonts/roboto/Roboto-Medium.woff', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Medium.woff', { maxage: '365d' }));
+app.use('/fonts/roboto/Roboto-Medium.woff2', express.static('./node_modules/materialize-css/dist/fonts/roboto/Roboto-Medium.woff2', { maxage: '365d' }));
 
 /* Cors */
 
