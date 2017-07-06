@@ -18,10 +18,14 @@
                     <textarea ng-model="photo.description" class="materialize-textarea"></textarea>
                 </div>
                 <div>
+                    <label>Location (Optional)</label>
+                    <input type="text" ng-model="photo.location">
+                </div>
+                <div>
                   <div class="file-field input-field">
                       <div class="indigo darken-2 btn">
                         <span>Photo</span>
-                        <input type="file" id="file">
+                        <input type="file" id="file" accept="image/jpeg image/png image/tiff">
                       </div>
                       <div class="file-path-wrapper">
                         <input class="file-path validate" type="text" value="(Required)">

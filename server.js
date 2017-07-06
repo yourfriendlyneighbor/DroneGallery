@@ -3,7 +3,7 @@ express = require('express'),
 app = express(),
 mongoose = require('mongoose'),
 multer = require('multer'),
-upload = multer({dest: 'uploads/'}),
+upload = multer({dest: './userUploads/'}),
 bodyParser = require('body-parser'),
 fs = require('fs'),
 compression = require('compression'),
@@ -21,7 +21,13 @@ app.set('view engine', 'ejs');
 
 app.use(compression());
 
-mongoose.connect('mongodb://dabkab:abcdabcd@ds149412.mlab.com:49412/dronepics');
+try {
+    mongoose.connect('mongodb://dabkab:abcdabcd@ds149412.mlab.com:49412/dronepics');
+} catch (e) {
+    mongoose.connect('mongodb://dabkab:abcdabcd@ds149412.mlab.com:49412/dronepics');
+} finally {
+    console.log('uh oh');
+}
 
 var pschema = new mongoose.Schema({
     title: {
@@ -31,6 +37,9 @@ var pschema = new mongoose.Schema({
         type: String
     },
     image: {
+        type: String
+    },
+    location: {
         type: String
     },
     date: {
@@ -74,8 +83,6 @@ app.use((req, res, next) => {
     next()
 });
 
-
-
 app.get('/', (req, res) => {
     res.redirect('/home');
 });
@@ -86,71 +93,158 @@ app.get('/home', (req, res) => {
     Photo.paginate({}, { page: currentPage, limit: limit }, function(err, result) {
         docs = result.docs.reverse();
 
-        res.render("pages/index", { photos: docs });
+        res.render("pages/index", {
+             photos: docs
+         });
     });
-
-
-
 });
 app.get('/upload', (req, res) => {
     res.render('pages/upload')
 });
 
-
-var editor = path.resolve(__dirname, 'editor.js');
-function compressAndResize (imageUrl) {
-  // We need to spawn a child process so that we do not block
-  // the EventLoop with cpu intensive image manipulation
-  var childProcess = require('child_process').fork(editor);
-  childProcess.on('message', function(message) {
-    console.log(message);
-  });
-  childProcess.on('error', function(error) {
-    console.error(error.stack)
-  });
-  childProcess.on('exit', function() {
-    console.log('process exited');
-  });
-  childProcess.send(imageUrl);
+function deletePhotos(path){
+    if( fs.existsSync(path) ) {
+      fs.readdirSync(path).forEach(function(file,index){
+        var curPath = path + "/" + file;
+        if(fs.lstatSync(curPath).isDirectory()) { // recurse
+          deleteFolderRecursive(curPath);
+        } else { // delete file
+          fs.unlinkSync(curPath);
+        }
+      });
+      fs.rmdirSync(path);
+    }
 }
 
-
 app.post('/postPhoto', upload.any(), (req, res) => {
+    console.log(req.files[0].size);
+    if(req.files[0].size <= 5242880){
+        if(req.body.description == ""){
+            if(req.body.description == ""){
+                if(req.body.title == req.body.title.toUppercase()){
+                    if(req.body.description == req.body.description.toUppercase()){
+                        // All good
+                        req.files.forEach((file) => {
+                            var filename = (new Date).valueOf() + "." + file.originalname;
+                            fs.rename(file.path, './userUploads/' + filename, (err) => {
+                                if(err){
+                                    deletePhotos('./userUploads/');
 
-    if(req.body.title == " " || req.body.description == "" || req.body.description.length < 2 || req.body.title.length < 2 || !req.files){
-        res.json({error: 'Make sure you filled all inputs correctly'})
+                                    console.log(err);
+                                    return res.json({error: err})
+                                }else{
+                                    cloudinary.uploader.upload('./userUploads/' + filename, function(result) {
+                                        var photo = new Photo({
+                                            title: req.body.title,
+                                            description: req.body.description,
+                                            location: req.body.location,
+                                            image: result.url
+                                        });
+
+                                        photo.save((err, result) => {
+                                            if(err){
+                                                delet
+                                                deletePhotos('./userUploads/');
+                                                console.log(err);
+                                                res.json({error: err})
+                                            }else{
+                                                fs.unlink('./userUploads/'+filename, (err) => {
+                                                    if (err){
+                                                        deletePhotos('./userUploads/');
+                                                        console.log(err);
+                                                        res.json({error: err})
+                                                    }else{
+                                                        deletePhotos('./userUploads/');
+                                                        res.json({success: 'Success! Check out your new image'})
+                                                    }
+                                                });
+                                            }
+                                        })
+                                    }, {
+                                        width: 1080,
+                                        height: 720
+                                    });
+                                }
+
+                            })
+                        })
+
+                    }else{
+                        try{
+                            deletePhotos('./userUploads/');
+                            fs.mkdirSync('./userUploads');
+                        } catch(e){
+                            deletePhotos('./userUploads/');
+                            fs.mkdirSync('./userUploads');
+                        }
+                        return res.json({warning: 'An all uppercase description makes me sad'})
+                    }
+                }else{
+                    try{
+                        deletePhotos('./userUploads/');
+                        fs.mkdirSync('./userUploads');
+                    } catch(e){
+                        deletePhotos('./userUploads/');
+                        fs.mkdirSync('./userUploads');
+                    }
+                    return res.json({warning: 'An all uppercase title makes me sad'})
+                }
+            }else{
+                try{
+                    deletePhotos('./userUploads/');
+                    fs.mkdirSync('./userUploads');
+                } catch(e){
+                    deletePhotos('./userUploads/');
+                    fs.mkdirSync('./userUploads');
+                }
+                return res.json({warning: 'Make sure you made a description'})
+            }
+        }else{
+            try{
+                deletePhotos('./userUploads/');
+                fs.mkdirSync('./userUploads');
+            } catch(e){
+                deletePhotos('./userUploads/');
+                fs.mkdirSync('./userUploads');
+            }
+            return res.json({warning: 'Make sure you made a title'})
+        }
+    }else{
+        try{
+            deletePhotos('./userUploads/');
+            fs.mkdirSync('./userUploads');
+        } catch(e){
+            deletePhotos('./userUploads/');
+            fs.mkdirSync('./userUploads');
+        }
+        return res.json({warning: 'Your file cannot be more than 5MB'})
     }
 
-    if(req.files){
-        req.files.forEach((file) => {
-            var filename = (new Date).valueOf() + "." + file.originalname;
-            fs.rename(file.path, './userUploads/' + filename, (err) => {
-                if(err)throw err;
 
-                cloudinary.uploader.upload('./userUploads/' + filename, function(result) {
-                  console.log(result)
-                  var photo = new Photo({
-                      title: req.body.title,
-                      description: req.body.description,
-                      image: result.url
-                  });
+});
 
-                  photo.save((err, result) => {
-                      if(err){throw err}else{
-                          fs.unlink('./userUploads/'+filename, (err) => {
-                              if (err) throw err;
-                              res.json({success: 'Success! Check out your new image'})
-                            });
-                      }
-                  })
-              }, {
-                  width: 1080,
-                  height: 720
-              });
-            })
-        })
-    }
+app.post('/thumbup', (req, res) => {
+    Photo.findById(req.body.data, (err, doc) => {
+        doc.likes = doc.likes + 1;
+        doc.save(function (err) {
+            if(err) {
+                console.error('ERROR!');
+            }
+        });
+    });
+    return res.sendStatus(200)
+});
 
+app.post('/thumbdown', (req, res) => {
+    Photo.findById(req.body.data, (err, doc) => {
+        doc.dislikes = doc.dislikes + 1;
+        doc.save(function (err) {
+            if(err) {
+                console.error('ERROR!');
+            }
+        });
+    });
+    return res.sendStatus(200)
 });
 
 app.get('*', function(req, res){
