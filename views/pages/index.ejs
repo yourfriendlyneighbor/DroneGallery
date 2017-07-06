@@ -24,15 +24,11 @@
                 <div class="col s16">
                     <br />
                     <script type="text/javascript">
-                        if(window.location.search == ""){
-                            window.location.search = '?page=1'
-                        }
 
+                        window.location.search = (window.location.search == "") ? '?page=1'
 
                         function last(){
-                            if((window.location.search.match(/\d+/)[0]) - 1 !== 0){
-                                window.location.search = '?page=' + (window.location.search.match(/\d+/)[0] - 1).toString()
-                            }
+                            window.location.search = ((window.location.search.match(/\d+/)[0]) - 1 !== 0) ? '?page=' + (window.location.search.match(/\d+/)[0] - 1).toString()
                         }
                         function next(){
                             window.location.search = '?page=' + (Number(window.location.search.match(/\d+/)[0]) + 1).toString()
