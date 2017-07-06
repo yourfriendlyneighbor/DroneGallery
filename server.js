@@ -1,8 +1,16 @@
 const
 express = require('express'),
 app = express(),
+config = require('./config.js');
 mongoose = require('mongoose'),
-Photo = require('./Schemas/Photo')
+db = 'mongodb://'+config.mongoose.user+':'+config.mongoose.pass+'@'+config.mongoose.host+':'+config.mongoose.port+'/'+config.mongoose.db;
+try {
+    mongoose.connect(db);
+} catch (e) {
+    mongoose.connect(db);
+}
+const
+Photo = require('./Schemas/Photo'),
 multer = require('multer'),
 upload = multer({dest: './userUploads/'}),
 bodyParser = require('body-parser'),
@@ -10,8 +18,7 @@ fs = require('fs'),
 compression = require('compression'),
 cloudinary = require('cloudinary'),
 path = require('path'),
-RequestProfiler = require('./logs/logger'),
-config = require('./config.js');
+RequestProfiler = require('./logs/logger');
 
 /* Route Profiler */
 
@@ -35,12 +42,6 @@ app.use(compression());
 
 /* Mongoose */
 
-const db = 'mongodb://'+config.mongoose.user+config.mongoose.pass+'@'+config.mongoose.host+':'+config.mongoose.port+'/'+config.mongoose.db;
-try {
-    mongoose.connect(db);
-} catch (e) {
-    mongoose.connect(db);
-}
 
 /* BodyParser */
 app.use(bodyParser.json());
